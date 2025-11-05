@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6fa;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 900px;
+        background: white;
+        margin: 40px auto;
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        color: #001f4d;
+        padding: 10px 20px;
+        border-radius: 8px 8px 0 0;
+        margin: -30px -40px 25px -40px;
+        border: 1px solid #005aa9;
+      }
+
+      header img { height: 100px; margin-right: 15px; }
+      header h2 { font-weight: bold; margin: 0; color: #001f4d; }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 40px;
+        row-gap: 15px;
+      }
+
+      label { display: block; font-weight: bold; margin-bottom: 5px; }
+
+      input, select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      button {
+        margin-top: 25px;
+        padding: 10px 25px;
+        font-size: 16px;
+        background-color: #005aa9;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover { background-color: #004680; }
+      #msg { margin-top: 15px; color: green; font-weight: bold; }
+      @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img src="https://i.postimg.cc/TwLXv9wp/Bluestar-Logo.png" alt="Bluestar Logo">
+        <h2>R22 Replacement Enquiry Form</h2>
+      </header>
+
+      <div class="form-grid">
+        <!-- Left Column -->
+        <div>
+          <label for="name">Name:</label>
+          <input type="text" id="name" placeholder="Enter your name" required>
+
+          <label for="email">Email ID:</label>
+          <input type="email" id="email" placeholder="Enter your email" required>
+
+          <label for="phone">Phone Number:</label>
+          <input type="tel" id="phone" placeholder="Enter your phone number" required>
+
+          <label for="state">Location State:</label>
+          <select id="state" required>
+            <option value="">--Select State--</option>
+          </select>
+
+          <label for="district">Location District:</label>
+          <select id="district" required>
+            <option value="">--Select District--</option>
+          </select>
+        </div>
+
+        <!-- Right Column -->
+        <div>
+          <label for="productType">R22 Product Type:</label>
+          <select id="productType" required>
+            <option value="">--Select Product Type--</option>
+            <option>Ductable Split / Packaged AC</option>
+            <option>Scroll Chiller</option>
+            <option>Screw Chiller</option>
+            <option>Reciprocating Chiller</option>
+            <option>Condensing Units</option>
+          </select>
+
+          <label for="capacity">R22 Product Total Capacity (in TR):</label>
+          <input type="number" id="capacity" placeholder="e.g. 120" step="0.01" min="0" required>
+        </div>
+      </div>
+
+      <button id="submitBtn">Submit</button>
+      <p id="msg"></p>
+    </div>
+
+    <script>
+      let stateDistrictMap = {};
+
+      // Wait for google.script.run to load (fixes mobile)
+      function waitForGoogle(callback, attempt = 0) {
+        if (typeof google !== "undefined" && google.script && google.script.run) {
+          callback();
+        } else if (attempt < 30) {
+          setTimeout(() => waitForGoogle(callback, attempt + 1), 250);
+        } else {
+          alert("Unable to connect. Please reload the page.");
+        }
+      }
+
+      // Load states & districts once library is ready
+      waitForGoogle(function() {
+        google.script.run.withSuccessHandler(function(data){
+          stateDistrictMap = data;
+          const stateSelect = document.getElementById('state');
+          Object.keys(data).sort().forEach(state => {
+            const opt = document.createElement('option');
+            opt.value = state;
+            opt.text = state;
+            stateSelect.add(opt);
+          });
+        }).getStateDistrictData();
+      });
+
+      // Update districts when state changes
+      document.getElementById('state').addEventListener('change', function(){
+        const state = this.value;
+        const districtSelect = document.getElementById('district');
+        districtSelect.innerHTML = '<option value="">--Select District--</option>';
+        if(state && stateDistrictMap[state]) {
+          stateDistrictMap[state].sort().forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.text = d;
+            districtSelect.add(opt);
+          });
+        }
+      });
+
+      // Submit form
+      document.getElementById('submitBtn').addEventListener('click', function(){
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const state = document.getElementById('state').value;
+        const district = document.getElementById('district').value;
+        const productType = document.getElementById('productType').value;
+        const capacity = document.getElementById('capacity').value.trim();
+
+        const capacityValue = parseFloat(capacity);
+        if(isNaN(capacityValue) || capacityValue < 0) {
+          alert('Please enter a valid numeric value for R22 Product Total Capacity.');
+          return;
+        }
+        if(!name || !email || !phone || !state || !district || !productType || !capacity) {
+          alert('Please fill all fields.');
+          return;
+        }
+
+        google.script.run.withSuccessHandler(function(msg){
+          document.querySelector('.container').innerHTML = `
+            <p id="msg" style="font-size: 1.5em; color: #005aa9; font-weight: bold; text-align: center;">
+              Thanks for your Enquiry. Our Team Shall soon get back.
+            </p>`;
+        }).submitResponse(name, email, phone, state, district, productType, capacity);
+      });
+    </script>
+  </body>
+</html>
