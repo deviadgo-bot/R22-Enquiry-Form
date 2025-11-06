@@ -41,13 +41,18 @@
     column-gap: 40px;
     row-gap: 15px;
   }
-  label { display: block; font-weight: bold; margin-bottom: 5px; }
-  input, select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 2px; /* reduced from 5px to 2px */
+}
+input, select {
+  width: 100%;
+  padding: 6px; /* slightly tighter fields */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 8px; /* small gap below each input */
+}
   button {
     margin-top: 25px;
     padding: 10px 25px;
