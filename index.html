@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <base target="_top">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>R22 Replacement Enquiry Form</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -50,12 +50,6 @@
         border-radius: 4px;
       }
 
-      input[type=number]::-webkit-inner-spin-button,
-      input[type=number]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-
       button {
         margin-top: 25px;
         padding: 10px 25px;
@@ -81,7 +75,6 @@
       </header>
 
       <div class="form-grid">
-        <!-- Left Column -->
         <div>
           <label for="name">Name:</label>
           <input type="text" id="name" placeholder="Enter your name" required>
@@ -103,7 +96,6 @@
           </select>
         </div>
 
-        <!-- Right Column -->
         <div>
           <label for="productType">R22 Product Type:</label>
           <select id="productType" required>
@@ -125,65 +117,57 @@
     </div>
 
     <script>
-      let stateDistrictMap = {};
-
-      // ✅ Load states & districts from local JSON file
+      // Load state-district data from JSON
       fetch("states.json")
-        .then(res => res.json())
+        .then(response => response.json())
         .then(data => {
-          stateDistrictMap = data;
-          const stateSelect = document.getElementById('state');
-          Object.keys(data).sort().forEach(state => {
-            const opt = document.createElement('option');
+          const stateDistrictMap = data;
+          const stateSelect = document.getElementById("state");
+          const districtSelect = document.getElementById("district");
+
+          Object.keys(stateDistrictMap).sort().forEach(state => {
+            const opt = document.createElement("option");
             opt.value = state;
             opt.text = state;
             stateSelect.add(opt);
           });
+
+          stateSelect.addEventListener("change", () => {
+            const state = stateSelect.value;
+            districtSelect.innerHTML = '<option value="">--Select District--</option>';
+            if (state && stateDistrictMap[state]) {
+              stateDistrictMap[state].sort().forEach(d => {
+                const opt = document.createElement("option");
+                opt.value = d;
+                opt.text = d;
+                districtSelect.add(opt);
+              });
+            }
+          });
         })
         .catch(err => {
           console.error("Error loading states.json:", err);
-          alert("Unable to load states list. Please refresh the page.");
+          alert("Error loading state and district data. Please try again later.");
         });
 
-      // ✅ Update districts when state changes
-      document.getElementById('state').addEventListener('change', function() {
-        const state = this.value;
-        const districtSelect = document.getElementById('district');
-        districtSelect.innerHTML = '<option value="">--Select District--</option>';
+      // Simple placeholder for submission (you can later link this to a backend)
+      document.getElementById("submitBtn").addEventListener("click", function() {
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const state = document.getElementById("state").value;
+        const district = document.getElementById("district").value;
+        const productType = document.getElementById("productType").value;
+        const capacity = document.getElementById("capacity").value.trim();
 
-        if (state && stateDistrictMap[state]) {
-          stateDistrictMap[state].sort().forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d;
-            opt.text = d;
-            districtSelect.add(opt);
-          });
-        }
-      });
-
-      // ✅ Handle form submission (temporary success message)
-      document.getElementById('submitBtn').addEventListener('click', function() {
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const state = document.getElementById('state').value;
-        const district = document.getElementById('district').value;
-        const productType = document.getElementById('productType').value;
-        const capacity = document.getElementById('capacity').value.trim();
-
-        const capacityValue = parseFloat(capacity);
-        if (isNaN(capacityValue) || capacityValue < 0) {
-          alert('Please enter a valid numeric value for R22 Product Total Capacity.');
-          return;
-        }
         if (!name || !email || !phone || !state || !district || !productType || !capacity) {
-          alert('Please fill all fields.');
+          alert("Please fill all fields.");
           return;
         }
 
-        document.querySelector('.container').innerHTML = `
+        document.querySelector(".container").innerHTML = `
           <p id="msg" style="font-size: 1.5em; color: #005aa9; font-weight: bold; text-align: center;">
-            Thanks for your enquiry. Our team shall get back to you soon.
+            Thanks for your Enquiry. Our Team Shall soon get back.
           </p>`;
       });
     </script>
