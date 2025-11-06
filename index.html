@@ -149,27 +149,34 @@
           console.error("Error loading states.json:", err);
           alert("Error loading state and district data. Please try again later.");
         });
+// Submit form
+document.getElementById("submitBtn").addEventListener("click", function () {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const state = document.getElementById("state").value;
+  const district = document.getElementById("district").value;
+  const productType = document.getElementById("productType").value;
+  const capacity = document.getElementById("capacity").value.trim();
 
-      // Simple placeholder for submission (you can later link this to a backend)
-      document.getElementById("submitBtn").addEventListener("click", function() {
-        const name = document.getElementById("name").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const phone = document.getElementById("phone").value.trim();
-        const state = document.getElementById("state").value;
-        const district = document.getElementById("district").value;
-        const productType = document.getElementById("productType").value;
-        const capacity = document.getElementById("capacity").value.trim();
-
-        if (!name || !email || !phone || !state || !district || !productType || !capacity) {
-          alert("Please fill all fields.");
-          return;
-        }
-
-        document.querySelector(".container").innerHTML = `
-          <p id="msg" style="font-size: 1.5em; color: #005aa9; font-weight: bold; text-align: center;">
-            Thanks for your Enquiry. Our Team Shall soon get back.
-          </p>`;
-      });
+  if (!name || !email || !phone || !state || !district || !productType || !capacity) {
+    alert("Please fill all fields.");
+    return;
+  }
+  const payload = { name, email, phone, state, district, productType, capacity };
+  fetch("https://script.google.com/macros/s/AKfycbzqp-CHS8nai14KgMnQBiEqgbI6sGF1XeXHnD9bIMf0Oai7WtKWykz6TOoMuCWTOWLu1g/exec", {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  document.querySelector(".container").innerHTML = `
+    <p id="msg" style="font-size: 1.5em; color: #005aa9; font-weight: bold; text-align: center;">
+      Thanks for your enquiry. Our team shall soon get back to you.
+    </p>`;
+});
     </script>
   </body>
 </html>
