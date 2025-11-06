@@ -72,6 +72,7 @@
       @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
     </style>
   </head>
+
   <body>
     <div class="container">
       <header>
@@ -126,20 +127,10 @@
     <script>
       let stateDistrictMap = {};
 
-      // Wait for google.script.run to load (fixes mobile)
-      function waitForGoogle(callback, attempt = 0) {
-        if (typeof google !== "undefined" && google.script && google.script.run) {
-          callback();
-        } else if (attempt < 30) {
-          setTimeout(() => waitForGoogle(callback, attempt + 1), 250);
-        } else {
-          alert("Unable to connect. Please reload the page.");
-        }
-      }
-
-      // Load states & districts once library is ready
-      waitForGoogle(function() {
-        google.script.run.withSuccessHandler(function(data){
+      // ✅ Load states & districts from local JSON file
+      fetch("states.json")
+        .then(res => res.json())
+        .then(data => {
           stateDistrictMap = data;
           const stateSelect = document.getElementById('state');
           Object.keys(data).sort().forEach(state => {
@@ -148,15 +139,19 @@
             opt.text = state;
             stateSelect.add(opt);
           });
-        }).getStateDistrictData();
-      });
+        })
+        .catch(err => {
+          console.error("Error loading states.json:", err);
+          alert("Unable to load states list. Please refresh the page.");
+        });
 
-      // Update districts when state changes
-      document.getElementById('state').addEventListener('change', function(){
+      // ✅ Update districts when state changes
+      document.getElementById('state').addEventListener('change', function() {
         const state = this.value;
         const districtSelect = document.getElementById('district');
         districtSelect.innerHTML = '<option value="">--Select District--</option>';
-        if(state && stateDistrictMap[state]) {
+
+        if (state && stateDistrictMap[state]) {
           stateDistrictMap[state].sort().forEach(d => {
             const opt = document.createElement('option');
             opt.value = d;
@@ -166,8 +161,8 @@
         }
       });
 
-      // Submit form
-      document.getElementById('submitBtn').addEventListener('click', function(){
+      // ✅ Handle form submission (temporary success message)
+      document.getElementById('submitBtn').addEventListener('click', function() {
         const name = document.getElementById('name').value.trim();
         const email = document.getElementById('email').value.trim();
         const phone = document.getElementById('phone').value.trim();
@@ -177,21 +172,19 @@
         const capacity = document.getElementById('capacity').value.trim();
 
         const capacityValue = parseFloat(capacity);
-        if(isNaN(capacityValue) || capacityValue < 0) {
+        if (isNaN(capacityValue) || capacityValue < 0) {
           alert('Please enter a valid numeric value for R22 Product Total Capacity.');
           return;
         }
-        if(!name || !email || !phone || !state || !district || !productType || !capacity) {
+        if (!name || !email || !phone || !state || !district || !productType || !capacity) {
           alert('Please fill all fields.');
           return;
         }
 
-        google.script.run.withSuccessHandler(function(msg){
-          document.querySelector('.container').innerHTML = `
-            <p id="msg" style="font-size: 1.5em; color: #005aa9; font-weight: bold; text-align: center;">
-              Thanks for your Enquiry. Our Team Shall soon get back.
-            </p>`;
-        }).submitResponse(name, email, phone, state, district, productType, capacity);
+        document.querySelector('.container').innerHTML = `
+          <p id="msg" style="font-size: 1.5em; color: #005aa9; font-weight: bold; text-align: center;">
+            Thanks for your enquiry. Our team shall get back to you soon.
+          </p>`;
       });
     </script>
   </body>
